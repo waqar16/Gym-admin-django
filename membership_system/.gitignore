@@ -1,1 +1,74 @@
+# Byte-compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Django-specific files
+db.sqlite3
+*.sqlite3
+.env
+
+# Logs
+*.log
+logs/
+
+# Static files (if collected via collectstatic)
+staticfiles/
+static/
+
+# Media files (user-uploaded content)
+media/
+
+# Virtual environment
 env
+venv/
+.env/
+*.env
+
+# Node modules (if using npm/yarn)
+node_modules/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+.coverage
+*.cover
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pytest
+.pytest_cache/
+.cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Docker-related files
+docker-compose.override.yml
+*.dockerfile
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+
+# Gunicorn socket file (if used with Nginx)
+*.sock
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# Pipenv files
+Pipfile.lock

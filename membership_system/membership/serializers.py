@@ -3,6 +3,8 @@ from .models import MemberData, ExpenseData, MembershipData, PaymentData
 
 
 class MemberDataSerializer(serializers.ModelSerializer):
+    membership_name = serializers.CharField(source='membership.name', read_only=True)
+    
     class Meta:
         model = MemberData
         fields = '__all__'

@@ -13,7 +13,11 @@ class MemberData(models.Model):
     joining_date = models.DateTimeField(auto_now_add=True)
     dob = models.DateField()
     address = models.TextField(blank=True, null=True)
-    membership = models.CharField(max_length=100)
+    membership = models.ForeignKey(
+        'MembershipData',
+        on_delete=models.CASCADE,
+        related_name='members',  # Allows reverse lookup (membership.members.all())
+    )
     membership_starting_date = models.DateField()
     membership_ending_date = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')

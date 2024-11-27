@@ -81,6 +81,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -131,10 +132,17 @@ STORAGES = {
     },
 }
 
-STATIC_URL = '/static/'
+# STATICFILES_DIRS - Additional locations for static files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+# The directory where static files will be collected during deployment
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Whitenoise settings for handling static files efficiently
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Static file URL (to access via browser)
+STATIC_URL = '/static/'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

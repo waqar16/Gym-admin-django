@@ -9,7 +9,7 @@ class MemberData(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone = models.IntegerField(unique=True)
-    image = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='member_images/', blank=True, null=True)
     joining_date = models.DateTimeField(auto_now_add=True)
     dob = models.DateField()
     address = models.TextField(blank=True, null=True)
@@ -22,6 +22,7 @@ class MemberData(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+
 class ExpenseData(models.Model):
     expense_name = models.CharField(max_length=200)
     label = models.CharField(max_length=100, blank=True, null=True)
@@ -30,6 +31,7 @@ class ExpenseData(models.Model):
 
     def __str__(self):
         return self.expense_name
+
 
 class MembershipData(models.Model):
     name = models.CharField(max_length=100)
@@ -40,6 +42,7 @@ class MembershipData(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class PaymentData(models.Model):
     membership_name = models.CharField(max_length=100)

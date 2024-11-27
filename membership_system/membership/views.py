@@ -17,7 +17,7 @@ from django.db import models
 class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = MemberData.objects.all()
     serializer_class = MemberDataSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
 class TotalMembersAPIView(APIView):

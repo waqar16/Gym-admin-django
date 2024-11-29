@@ -9,6 +9,7 @@ from .serializers import (
                           GymInoutSerializer,
                           GymAttendanceSerializer,
                           )
+from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -19,6 +20,14 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
 from django.db import models
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import (
+                      GymMemberFilter,
+                      MembershipFilter,
+                      GymIncomeExpenseFilter,
+                      GymInoutFilter,
+                      GymAttendanceFilter,
+                      )
 
 
 class MemberDataViewSet(viewsets.ModelViewSet):
@@ -26,6 +35,8 @@ class MemberDataViewSet(viewsets.ModelViewSet):
     serializer_class = GymMemberSerializer
     permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = GymMemberFilter
 
 
 class MemberShipViewSet(viewsets.ModelViewSet):
@@ -33,6 +44,8 @@ class MemberShipViewSet(viewsets.ModelViewSet):
     serializer_class = MembershipSerializer
     permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = MembershipFilter
 
 
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
@@ -40,6 +53,8 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = GymIncomeExpenseSerializer
     permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = GymIncomeExpenseFilter
 
 
 class GymInoutViewSet(viewsets.ModelViewSet):
@@ -47,6 +62,8 @@ class GymInoutViewSet(viewsets.ModelViewSet):
     serializer_class = GymInoutSerializer
     permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = GymInoutFilter
 
 
 class GymAttendanceViewSet(viewsets.ModelViewSet):
@@ -54,6 +71,31 @@ class GymAttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = GymAttendanceSerializer
     permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = GymAttendanceFilter
+    
+    
+class FingerModeView(APIView):
+    """
+    A class to handle getting and setting finger mode for fingerprint operations.
+    The mode is stored in the session and not persisted in the database.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Endpoint to get the current finger mode."""
+        finger_mode = request.session.get('finger_mode', None)
+        return Response({"finger_mode": finger_mode}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """Endpoint to set the current finger mode."""
+        finger_mode = request.data.get('finger_mode')
+        if finger_mode is None:
+            return Response({"error": "finger_mode is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Store mode in the session
+        request.session['finger_mode'] = finger_mode
+        return Response({"message": "Finger mode updated successfully"}, status=status.HTTP_200_OK)
 
 # class TotalMembersAPIView(APIView):
 #     permission_classes = [IsAuthenticated]

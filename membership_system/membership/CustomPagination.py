@@ -1,12 +1,11 @@
 from rest_framework.pagination import PageNumberPagination
-import os
-
+from django.conf import settings
 
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         response = super().get_paginated_response(data)
         request = self.request
-        base_url = os.getenv('BASE_URL', 'http://localhost:8080')  # Fallback if not set
+        base_url = settings.BASE_URL
         if response.data.get('next'):
             response.data['next'] = response.data['next'].replace(request._current_scheme_host, base_url)
         if response.data.get('previous'):

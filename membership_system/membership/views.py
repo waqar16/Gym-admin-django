@@ -28,6 +28,8 @@ from .filters import (
                       GymInoutFilter,
                       GymAttendanceFilter,
                       )
+from django.db.models import Sum, FloatField, F, Q, Value
+from django.db.models.functions import TruncMonth
 
 
 class MemberDataViewSet(viewsets.ModelViewSet):
@@ -48,13 +50,60 @@ class MemberShipViewSet(viewsets.ModelViewSet):
     filterset_class = MembershipFilter
 
 
+# class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
+#     queryset = GymIncomeExpense.objects.all()
+#     serializer_class = GymIncomeExpenseSerializer
+#     permission_classes = [IsAdminUser]
+#     pagination_class = CustomPageNumberPagination
+#     filter_backends = (DjangoFilterBackend,)
+#     filterset_class = GymIncomeExpenseFilter
+
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = GymIncomeExpenseFilter
+
+    def list(self, request, *args, **kwargs):
+        query_type = self.request.query_params.get('type', None)
+
+        if query_type == 'total-revenue':
+            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            return Response({'total_revenue': total_revenue['total'] or 0}, status=200)
+
+        elif query_type == 'total-expenses':
+            total_expenses = self.queryset.filter(invoice_type='expense').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            return Response({'total_expenses': total_expenses['total'] or 0}, status=200)
+
+        elif query_type == 'income-expense':
+            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            total_expenses = self.queryset.filter(invoice_type='expense').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            return Response({
+                'total_revenue': total_revenue['total'] or 0,
+                'total_expenses': total_expenses['total'] or 0
+            }, status=200)
+
+        elif query_type == 'monthly-income-expense-profit':
+            monthly_data = self.queryset.annotate(
+                year=TruncMonth('invoice_date')
+            ).values('year').annotate(
+                total_revenue=Sum('total_amount', filter=Q(invoice_type='revenue'), output_field=FloatField()),
+                total_expenses=Sum('total_amount', filter=Q(invoice_type='expense'), output_field=FloatField()),
+            ).annotate(
+                profit=F('total_revenue') - F('total_expenses')
+            ).values('year', 'total_revenue', 'total_expenses', 'profit')
+            return Response({'monthly_data': list(monthly_data)}, status=200)
+
+        # Default behavior
+        return super().list(request, *args, **kwargs)
 
 
 class GymInoutViewSet(viewsets.ModelViewSet):

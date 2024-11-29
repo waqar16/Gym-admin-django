@@ -244,7 +244,7 @@ class GymAttendance(models.Model):
     attendance_id = models.AutoField(primary_key=True)
     user_id = models.IntegerField(blank=True, null=True)
     class_id = models.IntegerField(blank=True, null=True)
-    attendance_date = models.DateField(blank=True, null=True)
+    attendance_date = models.DateField(blank=True, null=True, auto_now_add=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     attendance_by = models.IntegerField(blank=True, null=True)
     role_name = models.CharField(max_length=50, blank=True, null=True)

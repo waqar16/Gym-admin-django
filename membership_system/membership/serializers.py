@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import GymMember, Membership
+from .models import GymMember, Membership, GymIncomeExpense, GymInout, GymAttendance
 
 
 class GymMemberSerializer(serializers.ModelSerializer):
@@ -19,7 +19,27 @@ class MembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Membership
         fields = '__all__'
+    
+
+class GymIncomeExpenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GymIncomeExpense
+        fields = '__all__'    
+
+
+class GymInoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GymInout
+        fields = '__all__'
+
+
+class GymAttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GymAttendance
+        fields = '__all__'
         
+
+
 # class ExpenseDataSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = ExpenseData

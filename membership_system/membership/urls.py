@@ -1,6 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MemberDataViewSet, MemberShipViewSet
+from .views import (
+    MemberDataViewSet,
+    MemberShipViewSet,
+    GymIncomeExpenseViewSet,
+    GymInoutViewSet,
+    GymAttendanceViewSet,
+)
 # from .views import CustomLogin, TokenRefreshViewWithAdminPermission
 # from .views import (
 #     TotalMembersAPIView,
@@ -18,6 +24,9 @@ from .views import MemberDataViewSet, MemberShipViewSet
 router = DefaultRouter()
 router.register(r'members', MemberDataViewSet)
 router.register(r'membership', MemberShipViewSet)
+router.register(r'income-expense', GymIncomeExpenseViewSet)
+router.register(r'inout', GymInoutViewSet)
+router.register(r'attendance', GymAttendanceViewSet)
 
 # router.register(r'expenses', ExpenseDataViewSet)
 # router.register(r'memberships', MembershipDataViewSet)

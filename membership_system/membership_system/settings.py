@@ -79,8 +79,7 @@ SIMPLE_JWT = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://35.154.253.39:8080',  # Add your IP or domain here
-    'https://35.154.253.39:8080',  # Optionally add https version as well
+    'http://13.201.229.65:8080', 
 ]
 
 MIDDLEWARE = [

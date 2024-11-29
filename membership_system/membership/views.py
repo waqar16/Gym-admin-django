@@ -11,7 +11,7 @@ from .serializers import (
                           )
 from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny , IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
@@ -33,7 +33,7 @@ from .filters import (
 class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.all()
     serializer_class = GymMemberSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymMemberFilter
@@ -42,7 +42,7 @@ class MemberDataViewSet(viewsets.ModelViewSet):
 class MemberShipViewSet(viewsets.ModelViewSet):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MembershipFilter
@@ -51,7 +51,7 @@ class MemberShipViewSet(viewsets.ModelViewSet):
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymIncomeExpenseFilter
@@ -60,7 +60,7 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
 class GymInoutViewSet(viewsets.ModelViewSet):
     queryset = GymInout.objects.all()
     serializer_class = GymInoutSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymInoutFilter
@@ -69,7 +69,7 @@ class GymInoutViewSet(viewsets.ModelViewSet):
 class GymAttendanceViewSet(viewsets.ModelViewSet):
     queryset = GymAttendance.objects.all()
     serializer_class = GymAttendanceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymAttendanceFilter
@@ -222,36 +222,36 @@ class FingerModeView(APIView):
 #     permission_classes = [IsAuthenticated]
 
 
-# class TokenRefreshViewWithAdminPermission(TokenRefreshView):
-#     permission_classes = [IsAuthenticated]
+class TokenRefreshViewWithAdminPermission(TokenRefreshView):
+    permission_classes = [IsAuthenticated]
 
 
-# class CustomLogin(APIView):
-#     permission_classes = [AllowAny]
+class CustomLogin(APIView):
+    permission_classes = [AllowAny]
     
-#     def post(self, request, *args, **kwargs):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
 
-#         try:
-#             user = User.objects.get(username=username)
-#             if user.check_password(password):
-#                 # Issue JWT token for authenticated user
-#                 from rest_framework_simplejwt.tokens import RefreshToken
-#                 refresh = RefreshToken.for_user(user)
-#                 return Response({
-#                     'access': str(refresh.access_token),
-#                     'refresh': str(refresh),
-#                 }, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({'detail': 'Invalid credentials.'},
-#                                 status=status.HTTP_401_UNAUTHORIZED)
-#         except User.DoesNotExist:
-#             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            user = User.objects.get(username=username)
+            if user.check_password(password):
+                # Issue JWT token for authenticated user
+                from rest_framework_simplejwt.tokens import RefreshToken
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({'detail': 'Invalid credentials.'},
+                                status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
         
 
-# class AuthenticationCheckAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
+class AuthenticationCheckAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def get(self, request, *args, **kwargs):
-#         return Response({'message': 'You are authenticated!'})
+    def get(self, request, *args, **kwargs):
+        return Response({'message': 'You are authenticated!'})

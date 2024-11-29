@@ -7,6 +7,9 @@ from .views import (
     GymInoutViewSet,
     GymAttendanceViewSet,
     FingerModeView,
+    CustomLogin,
+    TokenRefreshViewWithAdminPermission,
+    AuthenticationCheckAPIView,
 )
 # from .views import CustomLogin, TokenRefreshViewWithAdminPermission
 # from .views import (
@@ -39,7 +42,6 @@ urlpatterns = [
     # Include the default router URLs
     path('api/', include(router.urls)),
     path('api/finger-mode/', FingerModeView.as_view(), name='finger-mode'),
-]   
 
 #     # Register APIViews
 #     path('api/total-members/', TotalMembersAPIView.as_view(), name='total-members'),
@@ -51,8 +53,8 @@ urlpatterns = [
 #     path('api/membership-counts/', MembershipCountsAPIView.as_view(), name='membership-counts'),
 #     path('api/monthly-income-expense-profit/', MonthlyIncomeExpenseProfitAPIView.as_view(), name='monthly-income-expense-profit'),
 
-#     # Token Authentication Endpoints
-#     path('api/token/', CustomLogin.as_view(), name='token_obtain_pair'),
-#     path('api/token/refresh/', TokenRefreshViewWithAdminPermission.as_view(), name='token_refresh'),
-#     path('api/auth-check/', AuthenticationCheckAPIView.as_view(), name='auth-check'),
-# ]
+    # Token Authentication Endpoints
+    path('api/token/', CustomLogin.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshViewWithAdminPermission.as_view(), name='token_refresh'),
+    path('api/auth-check/', AuthenticationCheckAPIView.as_view(), name='auth-check'),
+]

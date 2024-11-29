@@ -79,7 +79,7 @@ SIMPLE_JWT = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://13.201.229.65:8080', 
+    'http://3.111.221.228:8080', 
 ]
 
 MIDDLEWARE = [

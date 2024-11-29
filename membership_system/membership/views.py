@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import GymMember
-from .serializers import GymMemberSerializer
+from .models import GymMember, Membership
+from .serializers import GymMemberSerializer, MembershipSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -18,6 +18,13 @@ class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.all()
     serializer_class = GymMemberSerializer
     permission_classes = [AllowAny]
+
+
+class MemberShipViewSet(viewsets.ModelViewSet):
+    queryset = Membership.objects.all()
+    serializer_class = MembershipSerializer
+    permission_classes = [AllowAny]
+
 
 
 # class TotalMembersAPIView(APIView):

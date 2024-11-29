@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import GymMember
+from .models import GymMember, Membership
 
 
 class GymMemberSerializer(serializers.ModelSerializer):
@@ -14,6 +14,12 @@ class GymMemberSerializer(serializers.ModelSerializer):
         return representation
 
 
+class MembershipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Membership
+        fields = '__all__'
+        
 # class ExpenseDataSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = ExpenseData

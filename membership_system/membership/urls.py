@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MemberDataViewSet
+from .views import MemberDataViewSet, MemberShipViewSet
 # from .views import CustomLogin, TokenRefreshViewWithAdminPermission
 # from .views import (
 #     TotalMembersAPIView,
@@ -17,6 +17,8 @@ from .views import MemberDataViewSet
 # Default router for viewsets
 router = DefaultRouter()
 router.register(r'members', MemberDataViewSet)
+router.register(r'membership', MemberShipViewSet)
+
 # router.register(r'expenses', ExpenseDataViewSet)
 # router.register(r'memberships', MembershipDataViewSet)
 # router.register(r'payments', PaymentDataViewSet)

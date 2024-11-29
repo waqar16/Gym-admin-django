@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from .CustomPagination import CustomPageNumberPagination
 from .models import GymMember, Membership, GymIncomeExpense, GymInout, GymAttendance
 from .serializers import (
                           GymMemberSerializer,
@@ -24,30 +25,35 @@ class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.all()
     serializer_class = GymMemberSerializer
     permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
 
 
 class MemberShipViewSet(viewsets.ModelViewSet):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
     permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
 
 
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
     permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
 
 
 class GymInoutViewSet(viewsets.ModelViewSet):
     queryset = GymInout.objects.all()
     serializer_class = GymInoutSerializer
     permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
 
 
 class GymAttendanceViewSet(viewsets.ModelViewSet):
     queryset = GymAttendance.objects.all()
     serializer_class = GymAttendanceSerializer
     permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
 
 # class TotalMembersAPIView(APIView):
 #     permission_classes = [IsAuthenticated]

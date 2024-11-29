@@ -67,19 +67,20 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'Default_PAGINATION_CLASS': 'membership.CustomPagination.CustomPageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),  # Set access token validity (e.g., 2 hours)
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Set refresh token validity (e.g., 7 days)
-    'ROTATE_REFRESH_TOKENS': True,  # Enable rotation of refresh tokens
-    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens after rotation
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://3.111.221.228:8080', 
+    'http://3.111.221.228:8080',
 ]
 
 MIDDLEWARE = [

@@ -139,11 +139,13 @@ class FingerModeView(APIView):
     def post(self, request):
         """Endpoint to set the current finger mode."""
         finger_mode = request.data.get('finger_mode')
+        member_id = request.data.get('member_id')
         if finger_mode is None:
             return Response({"error": "finger_mode is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Store mode in the session
         request.session['finger_mode'] = finger_mode
+        request.session['member_id'] = member_id
         return Response({"message": "Finger mode updated successfully"}, status=status.HTTP_200_OK)
 
 # class TotalMembersAPIView(APIView):

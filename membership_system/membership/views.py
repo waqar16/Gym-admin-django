@@ -1,7 +1,13 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .CustomPagination import CustomPageNumberPagination
-from .models import GymMember, Membership, GymIncomeExpense, GymInout, GymAttendance
+from .models import (
+                     GymMember,
+                     Membership,
+                     GymIncomeExpense,
+                     GymInout,
+                     GymAttendance,
+                     )
 from .serializers import (
                           GymMemberSerializer,
                           MembershipSerializer,
@@ -9,54 +15,54 @@ from .serializers import (
                           GymInoutSerializer,
                           GymAttendanceSerializer,
                           )
-from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework.permissions import AllowAny , IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework import status
 from django.db.models import Sum
-from django.utils import timezone
-from datetime import timedelta
-from django.db import models
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import (
                       GymMemberFilter,
                       MembershipFilter,
-                      GymIncomeExpenseFilter,
                       GymInoutFilter,
                       GymAttendanceFilter,
                       )
-from django.db.models import Sum, FloatField, F, Q, Value
+from django.db.models import Sum, FloatField, F, Q
 from django.db.models.functions import TruncMonth
 
 
 class MemberDataViewSet(viewsets.ModelViewSet):
-    queryset = GymMember.objects.all()
+    queryset = GymMember.objects.filter(role_name__iexact='member')
     serializer_class = GymMemberSerializer
     permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymMemberFilter
+    
+    def list(self, request, *args, **kwargs):
+        query_type = self.request.query_params.get('type', None)
+
+        if query_type == 'total-members':
+            total_members = GymMember.objects.filter(role_name__iexact='member').count()
+            return Response({'total_members': total_members}, status=200)
+        
+        elif query_type == 'active-members':
+            active_members = GymMember.objects.filter(role_name__iexact='member', status='active').count()
+            return Response({'active_members': active_members}, status=200)
+
+        return super().list(request, *args, **kwargs)
 
 
 class MemberShipViewSet(viewsets.ModelViewSet):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MembershipFilter
 
-
-# class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
-#     queryset = GymIncomeExpense.objects.all()
-#     serializer_class = GymIncomeExpenseSerializer
-#     permission_classes = [IsAdminUser]
-#     pagination_class = CustomPageNumberPagination
-#     filter_backends = (DjangoFilterBackend,)
-#     filterset_class = GymIncomeExpenseFilter
 
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
@@ -122,8 +128,8 @@ class GymAttendanceViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymAttendanceFilter
-    
-    
+
+
 class FingerModeView(APIView):
     """
     A class to handle getting and setting finger mode for fingerprint operations.

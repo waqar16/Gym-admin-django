@@ -36,7 +36,7 @@ from django.db.models.functions import TruncMonth
 class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.filter(role_name__iexact='member')
     serializer_class = GymMemberSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymMemberFilter
@@ -49,7 +49,7 @@ class MemberDataViewSet(viewsets.ModelViewSet):
             return Response({'total_members': total_members}, status=200)
         
         elif query_type == 'active-members':
-            active_members = GymMember.objects.filter(role_name__iexact='member', status='active').count()
+            active_members = GymMember.objects.filter(role_name__iexact='member', membership_status__iexact='continue').count()
             return Response({'active_members': active_members}, status=200)
 
         return super().list(request, *args, **kwargs)
@@ -84,7 +84,20 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
                 total=Sum('total_amount', output_field=FloatField())
             )
             return Response({'total_expenses': total_expenses['total'] or 0}, status=200)
-
+        
+        elif query_type == 'total-expense-income':
+            total_expenses = self.queryset.filter(invoice_type='expense').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
+                total=Sum('total_amount', output_field=FloatField())
+            )
+            return Response(
+                {
+                    'total_expenses': total_expenses['total'] or 0,
+                    'total_revenue': total_revenue['total'] or 0
+                }, status=200
+            )
         elif query_type == 'income-expense':
             total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
                 total=Sum('total_amount', output_field=FloatField())

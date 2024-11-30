@@ -36,7 +36,7 @@ from django.db.models.functions import TruncMonth
 class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.filter(role_name__iexact='member')
     serializer_class = GymMemberSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymMemberFilter
@@ -58,7 +58,7 @@ class MemberDataViewSet(viewsets.ModelViewSet):
 class MemberShipViewSet(viewsets.ModelViewSet):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MembershipFilter
@@ -67,14 +67,14 @@ class MemberShipViewSet(viewsets.ModelViewSet):
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
 
     def list(self, request, *args, **kwargs):
         query_type = self.request.query_params.get('type', None)
 
         if query_type == 'total-revenue':
-            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
+            total_revenue = self.queryset.filter(invoice_type='income').aggregate(
                 total=Sum('total_amount', output_field=FloatField())
             )
             return Response({'total_revenue': total_revenue['total'] or 0}, status=200)
@@ -85,21 +85,8 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
             )
             return Response({'total_expenses': total_expenses['total'] or 0}, status=200)
         
-        elif query_type == 'total-expense-income':
-            total_expenses = self.queryset.filter(invoice_type='expense').aggregate(
-                total=Sum('total_amount', output_field=FloatField())
-            )
-            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
-                total=Sum('total_amount', output_field=FloatField())
-            )
-            return Response(
-                {
-                    'total_expenses': total_expenses['total'] or 0,
-                    'total_revenue': total_revenue['total'] or 0
-                }, status=200
-            )
         elif query_type == 'income-expense':
-            total_revenue = self.queryset.filter(invoice_type='revenue').aggregate(
+            total_revenue = self.queryset.filter(invoice_type='income').aggregate(
                 total=Sum('total_amount', output_field=FloatField())
             )
             total_expenses = self.queryset.filter(invoice_type='expense').aggregate(

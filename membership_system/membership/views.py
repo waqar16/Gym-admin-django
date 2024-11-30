@@ -79,7 +79,7 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
             )
             return Response({'total_revenue': total_revenue['total'] or 0}, status=200)
         
-        elif query_type == 'invice-type-income':
+        elif query_type == 'invoice-type-income':
             invoice_type_income = self.queryset.filter(invoice_type__iexact='income')
             paginated_data = self.paginate_queryset(invoice_type_income)
             if paginated_data is not None:

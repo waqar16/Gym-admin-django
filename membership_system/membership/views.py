@@ -42,7 +42,7 @@ class MemberDataViewSet(viewsets.ModelViewSet):
     filterset_class = GymMemberFilter
     
     def list(self, request, *args, **kwargs):
-        query_type = self.request.query_params.get('type', None)
+        query_type = self.request.query_params.get('query', None)
 
         if query_type == 'total-members':
             total_members = GymMember.objects.filter(role_name__iexact='member').count()
@@ -71,13 +71,27 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
 
     def list(self, request, *args, **kwargs):
-        query_type = self.request.query_params.get('type', None)
+        query_type = self.request.query_params.get('query', None)
 
         if query_type == 'total-revenue':
             total_revenue = self.queryset.filter(invoice_type='income').aggregate(
                 total=Sum('total_amount', output_field=FloatField())
             )
             return Response({'total_revenue': total_revenue['total'] or 0}, status=200)
+        
+        elif query_type == 'invice-type-income':
+            invoice_type_income = self.queryset.filter(invoice_type__iexact='income')
+            paginated_data = self.paginate_queryset(invoice_type_income)
+            if paginated_data is not None:
+                serializer = self.get_serializer(paginated_data, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        elif query_type == 'invoice-type-expense':
+            invoice_type_expense = self.queryset.filter(invoice_type__iexact='expense')
+            paginated_data = self.paginate_queryset(invoice_type_expense)
+            if paginated_data is not None:
+                serializer = self.get_serializer(paginated_data, many=True)
+                return self.get_paginated_response(serializer.data)
 
         elif query_type == 'total-expenses':
             total_expenses = self.queryset.filter(invoice_type='expense').aggregate(

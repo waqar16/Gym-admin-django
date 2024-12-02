@@ -72,12 +72,13 @@ class GymAttendanceFilter(filters.FilterSet):
 # GymIncomeExpense Filter
 class GymIncomeExpenseFilter(filters.FilterSet):
     global_search = filters.CharFilter(method='filter_global_search', label='Search')
+    invoice_type_filter = filters.CharFilter(field_name='invoice_type', lookup_expr='icontains', label='Invoice Type')
 
     def filter_global_search(self, queryset, name, value):
         """Perform Search across multiple fields in GymIncomeExpense."""
         if value:
-            return queryset.filter(
-                Q(invoice_type__icontains=value) |
+            # Apply global search filter
+            queryset = queryset.filter(
                 Q(invoice_label__icontains=value) |
                 Q(supplier_name__icontains=value) |
                 Q(entry__icontains=value) |
@@ -88,6 +89,12 @@ class GymIncomeExpenseFilter(filters.FilterSet):
                 Q(delete_reason__icontains=value) |
                 Q(mp_id__icontains=value)
             )
+            
+            # If invoice_type filter is provided, apply that too
+            invoice_type = self.request.query_params.get('invoice_type')
+            if invoice_type:
+                queryset = queryset.filter(invoice_type__icontains=invoice_type)
+        
         return queryset
 
     class Meta:

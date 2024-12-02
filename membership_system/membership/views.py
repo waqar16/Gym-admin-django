@@ -28,8 +28,9 @@ from .filters import (
                       MembershipFilter,
                       GymInoutFilter,
                       GymAttendanceFilter,
+                      GymIncomeExpenseFilter,
                       )
-from django.db.models import Sum, FloatField, F, Q
+from django.db.models import FloatField, F, Q
 from django.db.models.functions import TruncMonth
 
 
@@ -69,6 +70,8 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = GymIncomeExpenseSerializer
     permission_classes = [IsAdminUser]
     pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = GymIncomeExpenseFilter
 
     def list(self, request, *args, **kwargs):
         query_type = self.request.query_params.get('query', None)

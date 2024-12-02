@@ -72,7 +72,7 @@ class GymAttendanceFilter(filters.FilterSet):
 # GymIncomeExpense Filter
 class GymIncomeExpenseFilter(filters.FilterSet):
     global_search = filters.CharFilter(method='filter_global_search', label='Search')
-    invoice_type_filter = filters.CharFilter(field_name='invoice_type', lookup_expr='icontains', label='Invoice Type')
+    invoice_type_filter = filters.CharFilter(field_name='invoice_type', label='Invoice Type')
 
     def filter_global_search(self, queryset, name, value):
         """Perform Search across multiple fields in GymIncomeExpense."""
@@ -93,7 +93,7 @@ class GymIncomeExpenseFilter(filters.FilterSet):
             # If invoice_type filter is provided, apply that too
             invoice_type = self.request.query_params.get('invoice_type')
             if invoice_type:
-                queryset = queryset.filter(invoice_type__icontains=invoice_type)
+                queryset = queryset.filter(invoice_type=invoice_type)
         
         return queryset
 

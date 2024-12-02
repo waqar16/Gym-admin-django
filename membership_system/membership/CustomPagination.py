@@ -1,6 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
 
+
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         response = super().get_paginated_response(data)

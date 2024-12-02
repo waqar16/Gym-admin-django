@@ -72,7 +72,7 @@ REST_FRAMEWORK = {
     
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'Default_PAGINATION_CLASS': 'membership.CustomPagination.CustomPageNumberPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 12,
 }
 
 SIMPLE_JWT = {

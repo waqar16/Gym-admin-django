@@ -30,8 +30,8 @@ from .filters import (
                       GymAttendanceFilter,
                       GymIncomeExpenseFilter,
                       )
-from django.db.models import FloatField, F, Q
-from django.db.models.functions import TruncMonth
+from django.db.models import FloatField, F, Q, Value
+from django.db.models.functions import ExtractMonth, ExtractYear, Coalesce
 
 
 class MemberDataViewSet(viewsets.ModelViewSet):
@@ -115,16 +115,44 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
             }, status=200)
 
         elif query_type == 'monthly-income-expense-profit':
-            monthly_data = self.queryset.annotate(
-                year=TruncMonth('invoice_date')
-            ).values('year').annotate(
-                total_revenue=Sum('total_amount', filter=Q(invoice_type='revenue'), output_field=FloatField()),
-                total_expenses=Sum('total_amount', filter=Q(invoice_type='expense'), output_field=FloatField()),
-            ).annotate(
-                profit=F('total_revenue') - F('total_expenses')
-            ).values('year', 'total_revenue', 'total_expenses', 'profit')
-            return Response({'monthly_data': list(monthly_data)}, status=200)
+            # Query with separate year and month annotations
+            monthly_data = (
+                self.queryset.annotate(
+                    year=ExtractYear('invoice_date'),  # Extract year
+                    month=ExtractMonth('invoice_date')  # Extract month
+                )
+                .values('year', 'month')
+                .annotate(
+                    total_revenue=Coalesce(
+                        Sum(
+                            'total_amount',
+                            filter=Q(invoice_type='income'),
+                            output_field=FloatField()
+                        ),
+                        Value(0),  # Replace NULL with 0
+                        output_field=FloatField()
+                    ),
+                    total_expenses=Coalesce(
+                        Sum(
+                            'total_amount',
+                            filter=Q(invoice_type='expense'),
+                            output_field=FloatField()
+                        ),
+                        Value(0),  # Replace NULL with 0
+                        output_field=FloatField()
+                    ),
+                )
+                .annotate(
+                    profit=F('total_revenue') - F('total_expenses')
+                )
+                .order_by('-year', '-month')  # Order by most recent year and month
+            )
+            # Apply pagination
+            paginator = self.pagination_class()
+            paginated_data = paginator.paginate_queryset(list(monthly_data), request, view=self)
 
+            # Return paginated response
+            return paginator.get_paginated_response({'monthly_data': paginated_data})
         # Default behavior
         return super().list(request, *args, **kwargs)
 

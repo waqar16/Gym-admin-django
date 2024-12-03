@@ -175,28 +175,39 @@ class GymAttendanceViewSet(viewsets.ModelViewSet):
     filterset_class = GymAttendanceFilter
 
 
+# Global in-memory store to hold the current finger mode and member ID
+current_finger_mode = None
+current_member_id = None
+
+
 class FingerModeView(APIView):
     """
     A class to handle getting and setting finger mode for fingerprint operations.
-    The mode is stored in the session and not persisted in the database.
+    This stores the mode temporarily without using session IDs.
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
         """Endpoint to get the current finger mode."""
-        finger_mode = request.session.get('finger_mode', None)
-        return Response({"finger_mode": finger_mode}, status=status.HTTP_200_OK)
+        if current_finger_mode is not None:
+            return Response({"finger_mode": current_finger_mode}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "No finger mode set"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         """Endpoint to set the current finger mode."""
+        global current_finger_mode, current_member_id
+        
         finger_mode = request.data.get('finger_mode')
         member_id = request.data.get('member_id')
+        
         if finger_mode is None:
             return Response({"error": "finger_mode is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Store mode in the session
-        request.session['finger_mode'] = finger_mode
-        request.session['member_id'] = member_id
+        
+        # Store the data temporarily in global variables (overwritten with each request)
+        current_finger_mode = finger_mode
+        current_member_id = member_id
+        
         return Response({"message": "Finger mode updated successfully"}, status=status.HTTP_200_OK)
 
 # class TotalMembersAPIView(APIView):

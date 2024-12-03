@@ -83,8 +83,9 @@ SIMPLE_JWT = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://3.111.221.228:8080',
+    'https://0nn4jvzhwj.execute-api.ap-south-1.amazonaws.com',
 ]
+
 
 MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",

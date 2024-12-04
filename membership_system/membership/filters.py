@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from .models import GymMember, Membership, GymAttendance, GymIncomeExpense, GymInout
+from .models import GymMember, Membership, GymIncomeExpense, GymInout
+
 
 class GymMemberFilter(filters.FilterSet):
     global_search = filters.CharFilter(method='filter_global_search', label='Search')
@@ -50,23 +51,24 @@ class MembershipFilter(filters.FilterSet):
         fields = []
 
 
-class GymAttendanceFilter(filters.FilterSet):
-    global_search = filters.CharFilter(method='filter_global_search', label='Search')
+# class GymAttendanceFilter(filters.FilterSet):
+#     global_search = filters.CharFilter(method='filter_global_search', label='Search')
 
-    def filter_global_search(self, queryset, name, value):
-        """Custom filter to perform a Search across multiple fields in the GymAttendance model."""
-        if value:
-            return queryset.filter(
-                Q(user_id__icontains=value) |
-                Q(class_id__icontains=value) |
-                Q(status__icontains=value) |
-                Q(role_name__icontains=value)
-            )
-        return queryset
+#     def filter_global_search(self, queryset, name, value):
+#         """Custom filter to perform a Search across multiple fields in the GymAttendance model."""
+#         if value:
+#             return queryset.filter(
+#                 Q(user_id__icontains=value) |
+#                 Q(class_id__icontains=value) |
+#                 Q(status__icontains=value) |
+#                 Q(role_name__icontains=value) |
+#                 Q(attendance_date__icontains=value)
+#             )
+#         return queryset
 
-    class Meta:
-        model = GymAttendance
-        fields = []
+#     class Meta:
+#         model = GymAttendance
+#         fields = []
 
 
 # GymIncomeExpense Filter

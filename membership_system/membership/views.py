@@ -8,14 +8,12 @@ from .models import (
                      Membership,
                      GymIncomeExpense,
                      GymInout,
-                     GymAttendance,
                      )
 from .serializers import (
                           GymMemberSerializer,
                           MembershipSerializer,
                           GymIncomeExpenseSerializer,
                           GymInoutSerializer,
-                          GymAttendanceSerializer,
                           )
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -29,7 +27,6 @@ from .filters import (
                       GymMemberFilter,
                       MembershipFilter,
                       GymInoutFilter,
-                      GymAttendanceFilter,
                       GymIncomeExpenseFilter,
                       )
 from django.db.models import FloatField, F, Q, Value
@@ -139,7 +136,7 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
                             filter=Q(invoice_type='income'),
                             output_field=FloatField()
                         ),
-                        Value(0),  # Replace NULL with 0
+                        Value(0),
                         output_field=FloatField()
                     ),
                     total_expenses=Coalesce(
@@ -148,7 +145,7 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
                             filter=Q(invoice_type='expense'),
                             output_field=FloatField()
                         ),
-                        Value(0),  # Replace NULL with 0
+                        Value(0),
                         output_field=FloatField()
                     ),
                 )
@@ -157,11 +154,9 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
                 )
                 .order_by('-year', '-month')  # Order by most recent year and month
             )
-            # Apply pagination
             paginator = self.pagination_class()
             paginated_data = paginator.paginate_queryset(list(monthly_data), request, view=self)
 
-            # Return paginated response
             return paginator.get_paginated_response({'monthly_data': paginated_data})
         # Default behavior
         return super().list(request, *args, **kwargs)
@@ -176,13 +171,49 @@ class GymInoutViewSet(viewsets.ModelViewSet):
     filterset_class = GymInoutFilter
 
 
-class GymAttendanceViewSet(viewsets.ModelViewSet):
-    queryset = GymAttendance.objects.all()
-    serializer_class = GymAttendanceSerializer
-    permission_classes = [IsAdminUser]
-    pagination_class = CustomPageNumberPagination
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = GymAttendanceFilter
+# class GymAttendanceViewSet(viewsets.ModelViewSet):
+#     queryset = GymAttendance.objects.all()
+#     serializer_class = GymAttendanceSerializer
+#     permission_classes = [AllowAny]
+#     pagination_class = CustomPageNumberPagination
+#     filter_backends = (DjangoFilterBackend,)
+#     filterset_class = GymAttendanceFilter
+    
+#     def list(self, request, *args, **kwargs):
+#         """
+#         Custom list view to group by attendance date and list all members with their attendance status.
+#         """
+#         # Get the date from query parameters or default to today if not provided
+#         attendance_date = request.query_params.get('date', None)
+        
+#         if attendance_date:
+#             # Filter GymAttendance records by the provided date
+#             attendance_data = GymAttendance.objects.filter(attendance_date=attendance_date)
+#         else:
+#             # If no date is provided, return the attendance data for all dates
+#             attendance_data = GymAttendance.objects.all()
+
+#         # Fetch all members (role='member')
+#         members = GymMember.objects.filter(role_name='member')
+
+#         # Prepare the final response structure
+#         response_data = []
+        
+#         for member in members:
+#             # Check if the member has an attendance record for the provided date
+#             attendance = attendance_data.filter(user_id=member.member_id, attendance_date=attendance_date).first()
+            
+#             # Set status to 'present' if attendance exists, otherwise 'absent'
+#             status = attendance.status if attendance else 'absent'
+
+#             member_info = {
+#                 'user_id': member.member_id,
+#                 'status': status,
+#             }
+#             response_data.append(member_info)
+
+#         # Return the final list of members and their statuses
+#         return Response(response_data)
 
 
 # Global in-memory store to hold the current finger mode and member ID
@@ -222,130 +253,6 @@ class FingerModeView(APIView):
         current_member_id = member_id
         
         return Response({"message": "Mode has been updated."}, status=status.HTTP_200_OK)
-
-# class TotalMembersAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         total_members = MemberData.objects.count()
-#         return Response({'total_members': total_members})
-
-
-# class ActiveMembersAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         active_members = MemberData.objects.filter(status='active').count()
-#         return Response({'active_members': active_members})
-
-
-# class TotalExpensesAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         total_expenses = ExpenseData.objects.aggregate(total_expenses=models.Sum('amount'))['total_expenses']
-#         return Response({'total_expenses': total_expenses})
-
-
-# class IncomeExpenseAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         period = request.query_params.get('period', 'monthly')  # monthly, yearly, weekly
-#         today = timezone.now()
-
-#         if period == 'monthly':
-#             start_date = today.replace(day=1)
-#             end_date = today.replace(day=28) + timedelta(days=4)  # Just go to next month
-
-#         elif period == 'yearly':
-#             start_date = today.replace(month=1, day=1)
-#             end_date = today.replace(year=today.year + 1, month=1, day=1)
-
-#         elif period == 'weekly':
-#             start_date = today - timedelta(days=today.weekday())
-#             end_date = start_date + timedelta(days=7)
-
-#         else:
-#             start_date = today
-#             end_date = today
-
-#         income = PaymentData.objects.filter(payment_date__gte=start_date, payment_date__lt=end_date).aggregate(total_income=Sum('amount'))['total_income'] or 0
-#         expenses = ExpenseData.objects.filter(payment_date__gte=start_date, payment_date__lt=end_date).aggregate(total_expenses=Sum('amount'))['total_expenses'] or 0
-
-#         return Response({'income': income, 'expenses': expenses, 'profit_loss': income - expenses})
-
-
-# class LeftMembersAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         left_members = MemberData.objects.filter(status='left').count()
-#         return Response({'left_members': left_members})
-
-
-# class TotalRevenueAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         total_revenue = PaymentData.objects.aggregate(total_revenue=models.Sum('amount'))['total_revenue']
-#         return Response({'total_revenue': total_revenue})
-
-
-# class ExpenseDataViewSet(viewsets.ModelViewSet):
-#     queryset = ExpenseData.objects.all()
-#     serializer_class = ExpenseDataSerializer
-#     permission_classes = [IsAuthenticated]
-
-
-# class MembershipCountsAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         membership_counts = {}
-#         memberships = MembershipData.objects.all()
-
-#         for membership in memberships:
-#             membership_counts[membership.name] = MemberData.objects.filter(membership=membership.name).count()
-
-#         return Response(membership_counts)
-
-# class MonthlyIncomeExpenseProfitAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         months = PaymentData.objects.values('payment_date__year', 'payment_date__month').distinct()
-#         results = []
-
-#         for month in months:
-#             start_date = timezone.datetime(month['payment_date__year'], month['payment_date__month'], 1)
-#             end_date = start_date + timedelta(days=31)  # Next month
-#             end_date = end_date.replace(day=1)  # Reset to first day of next month
-
-#             income = PaymentData.objects.filter(payment_date__gte=start_date, payment_date__lt=end_date).aggregate(total_income=Sum('amount'))['total_income'] or 0
-#             expenses = ExpenseData.objects.filter(payment_date__gte=start_date, payment_date__lt=end_date).aggregate(total_expenses=Sum('amount'))['total_expenses'] or 0
-
-#             results.append({
-#                 'from': start_date,
-#                 'to': end_date,
-#                 'income': income,
-#                 'expense': expenses,
-#                 'profit_loss': income - expenses,
-#             })
-
-#         return Response(results)
-
-
-# class MembershipDataViewSet(viewsets.ModelViewSet):
-#     queryset = MembershipData.objects.all()
-#     serializer_class = MembershipDataSerializer
-#     permission_classes = [IsAuthenticated]
-
-
-# class PaymentDataViewSet(viewsets.ModelViewSet):
-#     queryset = PaymentData.objects.all()
-#     serializer_class = PaymentDataSerializer
-#     permission_classes = [IsAuthenticated]
 
 
 class TokenRefreshViewWithAdminPermission(TokenRefreshView):

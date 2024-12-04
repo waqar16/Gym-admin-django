@@ -5,7 +5,7 @@ from .views import (
     MemberShipViewSet,
     GymIncomeExpenseViewSet,
     GymInoutViewSet,
-    GymAttendanceViewSet,
+    # GymAttendanceViewSet,
     FingerModeView,
     CustomLogin,
     TokenRefreshViewWithAdminPermission,
@@ -30,7 +30,7 @@ router.register(r'members', MemberDataViewSet)
 router.register(r'membership', MemberShipViewSet)
 router.register(r'income-expense', GymIncomeExpenseViewSet)
 router.register(r'inout', GymInoutViewSet)
-router.register(r'attendance', GymAttendanceViewSet)
+# router.register(r'attendance', GymAttendanceViewSet)
 # router.register(r'finger-mode', FingerModeViewSet, basename='finger-mode')
 
 # router.register(r'expenses', ExpenseDataViewSet)

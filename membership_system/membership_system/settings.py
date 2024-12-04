@@ -59,7 +59,7 @@ INSTALLED_APPS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
-BASE_URL = 'http://3.111.221.228:8080'
+BASE_URL = 'https://0nn4jvzhwj.execute-api.ap-south-1.amazonaws.com'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

@@ -190,7 +190,7 @@ class FingerModeView(APIView):
     def get(self, request):
         """Endpoint to get the current finger mode."""
         if current_finger_mode is not None:
-            return Response({"finger_mode": current_finger_mode, "member_id": current_member_id}, status=status.HTTP_200_OK)
+            return Response({"mode": current_finger_mode, "member_id": current_member_id}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "No finger mode set"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -198,20 +198,20 @@ class FingerModeView(APIView):
         """Endpoint to set the current finger mode."""
         global current_finger_mode, current_member_id
         
-        finger_mode = request.data.get('finger_mode')
+        finger_mode = request.data.get('mode')
         member_id = request.data.get('member_id')
         
         if finger_mode is None:
-            return Response({"error": "finger_mode is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Mode is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         if finger_mode not in ['register', 'attendance']:
-            return Response({"error": "Invalid finger_mode choices are 'register' and 'attendance'"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid mode! Choices are 'register' and 'attendance'"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Store the data temporarily in global variables (overwritten with each request)
         current_finger_mode = finger_mode
         current_member_id = member_id
         
-        return Response({"message": "Finger mode updated successfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "Mode has been updated."}, status=status.HTTP_200_OK)
 
 # class TotalMembersAPIView(APIView):
 #     permission_classes = [IsAuthenticated]

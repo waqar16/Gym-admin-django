@@ -1,6 +1,8 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .CustomPagination import CustomPageNumberPagination
+from .utils import generate_pdf_receipt
 from .models import (
                      GymMember,
                      Membership,
@@ -68,13 +70,21 @@ class MemberShipViewSet(viewsets.ModelViewSet):
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymIncomeExpenseFilter
 
     def list(self, request, *args, **kwargs):
         query_type = self.request.query_params.get('query', None)
+        
+        if query_type == 'download-receipt':
+            income_id = self.request.query_params.get('income_id', None)
+            if not income_id:
+                return Response({"error": "income_id is required"}, status=400)
+
+            income = get_object_or_404(GymIncomeExpense, pk=income_id, invoice_type='income')
+            return generate_pdf_receipt(income)
 
         if query_type == 'total-revenue':
             total_revenue = self.queryset.filter(invoice_type='income').aggregate(

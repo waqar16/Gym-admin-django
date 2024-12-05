@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .CustomPagination import CustomPageNumberPagination
 from .utils import generate_pdf_receipt
-from datetime import timedelta, datetime
+from datetime import timedelta
 from .models import (
                      GymMember,
                      Membership,
@@ -90,6 +90,19 @@ class MemberShipPaymentViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MembershipPaymentFilter
+    
+    def list(self, request, *args, **kwargs):
+        query_type = self.request.query_params.get('query', None)
+        
+        if query_type == 'download-receipt':
+            mp_id = self.request.query_params.get('mp_id', None)
+            if not mp_id:
+                return Response({"error": "mp_id is required"}, status=400)
+
+            mp = get_object_or_404(GymIncomeExpense, mp_id=mp_id)
+            return generate_pdf_receipt(mp)
+        
+        return super().list(request, *args, **kwargs)
 
 
 class AcceptPaymentView(APIView):

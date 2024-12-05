@@ -33,10 +33,10 @@ class GymIncomeExpenseSerializer(serializers.ModelSerializer):
         fields = '__all__'    
 
 
-class GymInoutSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GymInout
-        fields = '__all__'
+# class GymInoutSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = GymInout
+#         fields = '__all__'
 
 
 class GymAttendanceSerializer(serializers.ModelSerializer):
@@ -62,3 +62,26 @@ class GymAttendanceSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = PaymentData
 #         fields = '__all__'
+
+
+class GymMemberSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GymMember
+        fields = ['first_name', 'last_name', 'membership_valid_from', 'membership_valid_to','membership_status', 'image']
+        
+        
+class GymInoutSerializer(serializers.ModelSerializer):
+    # Create a method field to fetch the member information based on member_id
+    member_info = serializers.SerializerMethodField()
+
+    def get_member_info(self, obj):
+        try:
+            # Fetch the member based on member_id (you can also use `filter()` if needed)
+            member = GymMember.objects.get(member_id=obj.member_id)
+            return GymMemberSimpleSerializer(member).data
+        except GymMember.DoesNotExist:
+            return None
+
+    class Meta:
+        model = GymInout
+        fields = ['id', 'in_time', 'out_time', 'member_reg_code', 'member_info']

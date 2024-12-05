@@ -99,8 +99,9 @@ class MemberShipPaymentViewSet(viewsets.ModelViewSet):
             if not mp_id:
                 return Response({"error": "mp_id is required"}, status=400)
 
-            mp = get_object_or_404(GymIncomeExpense, mp_id=mp_id)
-            return generate_pdf_receipt(mp)
+            mp = get_object_or_404(MembershipPayment, mp_id=mp_id)
+            member_id = mp.member_id
+            return generate_pdf_receipt(mp, member_id)
         
         return super().list(request, *args, **kwargs)
 

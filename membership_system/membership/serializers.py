@@ -63,7 +63,6 @@ class GymAttendanceSerializer(serializers.ModelSerializer):
 #         model = PaymentData
 #         fields = '__all__'
 
-
 class GymMemberSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = GymMember

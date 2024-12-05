@@ -2,17 +2,27 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.pdfgen import canvas
+from .models import GymMember
 from io import BytesIO
 from django.http import HttpResponse
+import datetime
+from django.shortcuts import get_object_or_404
 
 
-def generate_pdf_receipt(income):
+def generate_pdf_receipt(income, member):
     """
     Generate a premium-styled PDF receipt inspired by the uploaded invoice design.
     :param income: GymIncomeExpense instance (income type).
     :return: HttpResponse containing the PDF file.
     """
+    print(member)
+    member_info = get_object_or_404(GymMember, id=member)
+    firstname = member_info.first_name
+    lastname = member_info.last_name
+    membership_valid_from = member_info.membership_valid_from
+    membership_valid_to = member_info.membership_valid_to
+    membership_status = member_info.membership_status
+
     buffer = BytesIO()
     margin = 30  # 30 points padding on each side
     doc = SimpleDocTemplate(
@@ -36,8 +46,8 @@ def generate_pdf_receipt(income):
         ["From", "Bill To", "Invoice Details"],
         [
             "Fitness First Gym",
-            f"{income.supplier_name}\n{income.invoice_label}",
-            f"Invoice #: {income.id}\nInvoice Date: {income.invoice_date}\nPayment Status: {income.payment_status}",
+            f"{firstname} {lastname}\n{"Member ID: " + str(income.mp_id)}",
+            f"Invoice #: {income.mp_id}\nInvoice Date: {datetime.datetime.now().strftime('%Y-%m-%d')}\nPayment Status: {"Paid"}",
         ],
     ]
     from_bill_table = Table(from_bill_data, colWidths=[200, 200, 200])
@@ -59,12 +69,14 @@ def generate_pdf_receipt(income):
     # Details Table
     details_data = [
         ["Field", "Details"],
-        ["ID", str(income.id)],
-        ["Invoice Label", income.invoice_label],
-        ["Payment Status", income.payment_status],
-        ["Supplier", income.supplier_name],
-        ["Date", str(income.invoice_date)],
-        ["Amount", f"${income.total_amount:.2f}"],
+        ["ID", str(income.mp_id)],
+        ["Invoice Label", "Membership Fee"],
+        ["Membership Valid From", str(membership_valid_from)],
+        ["Membership Valid To", str(membership_valid_to)],
+        ["Membership Status", str(membership_status)],
+        ["Payment Status", "Paid"],
+        ["Date", str(datetime.date.today())],
+        ["Amount", f"{income.paid_amount:.2f}"],
     ]
 
     details_table = Table(details_data, colWidths=[150, 350])
@@ -97,5 +109,5 @@ def generate_pdf_receipt(income):
 
     # Return as an HTTP response
     response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="receipt_{income.id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="receipt_{income.mp_id}.pdf"'
     return response

@@ -3,17 +3,20 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .CustomPagination import CustomPageNumberPagination
 from .utils import generate_pdf_receipt
+from datetime import timedelta, datetime
 from .models import (
                      GymMember,
                      Membership,
                      GymIncomeExpense,
                      GymInout,
+                     MembershipPayment,
                      )
 from .serializers import (
                           GymMemberSerializer,
                           MembershipSerializer,
                           GymIncomeExpenseSerializer,
                           GymInoutSerializer,
+                          MembershipPaymentSerializer,
                           )
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -22,12 +25,14 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework import status
 from django.db.models import Sum
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import (
                       GymMemberFilter,
                       MembershipFilter,
                       GymInoutFilter,
                       GymIncomeExpenseFilter,
+                      MembershipPaymentFilter,
                       )
 from django.db.models import FloatField, F, Q, Value
 from django.db.models.functions import ExtractMonth, ExtractYear, Coalesce
@@ -36,10 +41,24 @@ from django.db.models.functions import ExtractMonth, ExtractYear, Coalesce
 class MemberDataViewSet(viewsets.ModelViewSet):
     queryset = GymMember.objects.filter(role_name__iexact='member')
     serializer_class = GymMemberSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymMemberFilter
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        
+        # Get the member object after saving
+        member = serializer.instance
+
+        if member.membership_valid_to and member.membership_valid_to < timezone.now().date():
+            member.membership_status = 'expired'
+        else:
+            member.membership_status = 'continue'
+
+        # Save the updated membership status
+        member.save()
     
     def list(self, request, *args, **kwargs):
         query_type = self.request.query_params.get('query', None)
@@ -58,16 +77,81 @@ class MemberDataViewSet(viewsets.ModelViewSet):
 class MemberShipViewSet(viewsets.ModelViewSet):
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MembershipFilter
 
 
+class MemberShipPaymentViewSet(viewsets.ModelViewSet):
+    queryset = MembershipPayment.objects.all()
+    serializer_class = MembershipPaymentSerializer
+    permission_classes = [AllowAny]
+    pagination_class = CustomPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = MembershipPaymentFilter
+
+
+class AcceptPaymentView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        # amount = request.data.get('amount')
+        member_id = request.data.get('member_id')
+        membership_class = request.data.get('membership_class')
+
+        if not all([member_id, membership_class]):
+            return Response({"error": "Missing required fields member_id and membership_class"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        member = get_object_or_404(GymMember, member_id=member_id)
+        
+        valid_membership_classes = ['Regular Monthly', '3 month Cardio', 'Cardio Monthly', '3 Month Gym']
+        if membership_class not in valid_membership_classes:
+            return Response({"error": f"Invalid membership class. Choices are {', '.join(valid_membership_classes)}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if membership_class == "Regular Monthly":
+            updated_date_to_expire = timezone.now() + timedelta(days=30)
+            amount = Membership.objects.get(membership_class='Regular Monthly').membership_amount
+        elif membership_class == "3 month Cardio":
+            updated_date_to_expire = timezone.now() + timedelta(days=90)
+            amount = Membership.objects.get(membership_class='3 month Cardio').membership_amount
+        elif membership_class == "Cardio Monthly":
+            updated_date_to_expire = timezone.now() + timedelta(days=30)
+            amount = Membership.objects.get(membership_class='Cardio Monthly').membership_amount
+        elif membership_class == "3 Month Gym":
+            updated_date_to_expire = timezone.now() + timedelta(days=90)
+            amount = Membership.objects.get(membership_class='3 Month Gym').membership_amount
+        
+        member.membership_valid_from = timezone.now()
+        member.membership_valid_to = updated_date_to_expire
+        member.selected_membership = membership_class
+        member.membership_status = 'continue'
+        member.save()
+
+        payment_data = {
+            'member_id': member.member_id,
+            'membership_id': Membership.objects.get(membership_label=membership_class).id,
+            'membership_amount': amount,
+            'paid_amount': amount,
+            'start_date': timezone.now(),
+            'end_date': updated_date_to_expire,
+            'membership_status': 'Continue',
+            'created_date': timezone.now(),
+            'is_active': True,
+        }
+        payment_serializer = MembershipPaymentSerializer(data=payment_data)
+        if payment_serializer.is_valid():
+            payment_serializer.save()
+        else:
+            return Response(payment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"message": "Payment accepted and member record updated."}, status=status.HTTP_200_OK)
+    
+
 class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
     queryset = GymIncomeExpense.objects.all()
     serializer_class = GymIncomeExpenseSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymIncomeExpenseFilter
@@ -163,57 +247,12 @@ class GymIncomeExpenseViewSet(viewsets.ModelViewSet):
 
 
 class GymInoutViewSet(viewsets.ModelViewSet):
-    queryset = GymInout.objects.all()
+    queryset = GymInout.objects.all().order_by('-in_time')[:1000]
     serializer_class = GymInoutSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     pagination_class = CustomPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GymInoutFilter
-
-
-# class GymAttendanceViewSet(viewsets.ModelViewSet):
-#     queryset = GymAttendance.objects.all()
-#     serializer_class = GymAttendanceSerializer
-#     permission_classes = [AllowAny]
-#     pagination_class = CustomPageNumberPagination
-#     filter_backends = (DjangoFilterBackend,)
-#     filterset_class = GymAttendanceFilter
-    
-#     def list(self, request, *args, **kwargs):
-#         """
-#         Custom list view to group by attendance date and list all members with their attendance status.
-#         """
-#         # Get the date from query parameters or default to today if not provided
-#         attendance_date = request.query_params.get('date', None)
-        
-#         if attendance_date:
-#             # Filter GymAttendance records by the provided date
-#             attendance_data = GymAttendance.objects.filter(attendance_date=attendance_date)
-#         else:
-#             # If no date is provided, return the attendance data for all dates
-#             attendance_data = GymAttendance.objects.all()
-
-#         # Fetch all members (role='member')
-#         members = GymMember.objects.filter(role_name='member')
-
-#         # Prepare the final response structure
-#         response_data = []
-        
-#         for member in members:
-#             # Check if the member has an attendance record for the provided date
-#             attendance = attendance_data.filter(user_id=member.member_id, attendance_date=attendance_date).first()
-            
-#             # Set status to 'present' if attendance exists, otherwise 'absent'
-#             status = attendance.status if attendance else 'absent'
-
-#             member_info = {
-#                 'user_id': member.member_id,
-#                 'status': status,
-#             }
-#             response_data.append(member_info)
-
-#         # Return the final list of members and their statuses
-#         return Response(response_data)
 
 
 # Global in-memory store to hold the current finger mode and member ID

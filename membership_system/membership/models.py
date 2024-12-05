@@ -386,7 +386,7 @@ class GymMember(models.Model):
     fat = models.CharField(max_length=10, blank=True, null=True)
     username = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=255, blank=True, null=True)
-    image = models.ImageField(upload_to='member_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='members/', blank=True, null=True)
     assign_staff_mem = models.IntegerField(blank=True, null=True)
     intrested_area = models.IntegerField(blank=True, null=True)
     g_source = models.IntegerField(blank=True, null=True)

@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from .models import GymMember, Membership, GymIncomeExpense, GymInout
+from .models import GymMember, Membership, GymIncomeExpense, GymInout, MembershipPayment
 
 
 class GymMemberFilter(filters.FilterSet):
@@ -20,7 +20,8 @@ class GymMemberFilter(filters.FilterSet):
                 Q(email__icontains=value) |
                 Q(mobile__icontains=value) |
                 Q(username__icontains=value) |
-                Q(address__icontains=value)
+                Q(address__icontains=value) |
+                Q(image__icontains=value)
             )
         print("No value provided for search")
         return queryset
@@ -50,6 +51,23 @@ class MembershipFilter(filters.FilterSet):
         model = Membership
         fields = []
 
+
+class MembershipPaymentFilter(filters.FilterSet):
+    global_search = filters.CharFilter(method='filter_global_search', label='Search')
+
+    def filter_global_search(self, queryset, name, value):
+        """Perform a case-insensitive search across multiple fields in MembershipPayment model."""
+        if value:
+            return queryset.filter(
+                Q(member_id__icontains=value) |
+                Q(membership_status__icontains=value) |
+                Q(created_date__icontains=value)
+            )
+        return queryset
+
+    class Meta:
+        model = MembershipPayment
+        fields = []
 
 # class GymAttendanceFilter(filters.FilterSet):
 #     global_search = filters.CharFilter(method='filter_global_search', label='Search')

@@ -6,10 +6,12 @@ from .views import (
     GymIncomeExpenseViewSet,
     GymInoutViewSet,
     # GymAttendanceViewSet,
+    MemberShipPaymentViewSet,
     FingerModeView,
     CustomLogin,
     TokenRefreshViewWithAdminPermission,
     AuthenticationCheckAPIView,
+    AcceptPaymentView,
 )
 # from .views import CustomLogin, TokenRefreshViewWithAdminPermission
 # from .views import (
@@ -28,8 +30,10 @@ from .views import (
 router = DefaultRouter()
 router.register(r'members', MemberDataViewSet)
 router.register(r'membership', MemberShipViewSet)
+router.register(r'membership-payment', MemberShipPaymentViewSet)
 router.register(r'income-expense', GymIncomeExpenseViewSet)
 router.register(r'inout', GymInoutViewSet)
+
 # router.register(r'attendance', GymAttendanceViewSet)
 # router.register(r'finger-mode', FingerModeViewSet, basename='finger-mode')
 
@@ -42,6 +46,7 @@ urlpatterns = [
     # Include the default router URLs
     path('api/', include(router.urls)),
     path('api/finger-mode/', FingerModeView.as_view(), name='finger-mode'),
+    path('api/accept-payment/', AcceptPaymentView.as_view(), name='accept-payment'),
 
 #     # Register APIViews
 #     path('api/total-members/', TotalMembersAPIView.as_view(), name='total-members'),

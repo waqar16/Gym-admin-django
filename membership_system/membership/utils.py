@@ -1,13 +1,13 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 from .models import GymMember
 from io import BytesIO
 from django.http import HttpResponse
 import datetime
 from django.shortcuts import get_object_or_404
-
+from django.contrib.staticfiles import finders
 
 def generate_pdf_receipt(income, member):
     """
@@ -36,11 +36,20 @@ def generate_pdf_receipt(income, member):
     styles = getSampleStyleSheet()
 
     elements = []
+    
+    logo_path = finders.find('logo.jpg')
+    try:
+        logo = Image(logo_path, width=100, height=120)
+        elements.append(logo)
+    except FileNotFoundError:
+        elements.append(Paragraph("<b><font size=12 color='red'>Logo not found</font></b>", styles['Normal']))
+
+    elements.append(Spacer(1, 20))
 
     # Header with invoice title
     elements.append(Paragraph("<b><font size=24 color='navy'>INVOICE</font></b>", styles['Title']))
     elements.append(Spacer(1, 12))
-
+    
     # "From" and "Bill To" section
     from_bill_data = [
         ["From", "Bill To", "Invoice Details"],

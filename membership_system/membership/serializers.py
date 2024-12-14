@@ -76,7 +76,7 @@ class GymInoutSerializer(serializers.ModelSerializer):
     def get_member_info(self, obj):
         try:
             # Fetch the member based on member_id (you can also use `filter()` if needed)
-            member = GymMember.objects.filter(member_id=obj.member_id)
+            member = GymMember.objects.filter(members_reg_number=obj.member_reg_code)
             return GymMemberSimpleSerializer(member).data
         except GymMember.DoesNotExist:
             return None
